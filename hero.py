@@ -1,5 +1,5 @@
-keySwCam = 'f5'
-keySwMode = 'f6'
+keySwCam = 't'
+keySwMode = 'y'
 
 keyFw = 'w'
 keyBk = 's'
@@ -9,55 +9,77 @@ keyRt = 'd'
 keyUp = 'space'
 keyDn = 'shift'
 
-keyTnLt = 'left'
-keyTnRt = 'right'
+keyTnLt = 'q'
+keyTnRt = 'e'
 
 keyBld = 'z'
 keyDst = 'x'
 
+keySv = 'k'
+keyLd = 'l'
+
+def check_dir(angle):
+    if 0 <= angle <= 20:
+        return 0, -1
+    elif angle <= 65:
+        return 1, -1
+    elif angle <= 110:
+        return 1, 0
+    elif angle <= 155:
+        return 1, 1
+    elif angle <= 200:
+        return 0, 1
+    elif angle <= 245:
+        return -1, 1
+    elif angle <= 290:
+        return -1, 0
+    elif angle <= 335:
+        return -1, -1
+    else:
+        return 0, -1
 
 class Hero:
+
     def __init__(self, pos, land):
         self.land = land
         self.mode = True
         self.hero = loader.loadModel('smiley')
-        self.hero.setColor(1, .5, 0)
-        self.hero.setScale(.3)
+        self.hero.setColor(1, 0.5, 0)
+        self.hero.setScale(0.3)
         self.hero.setPos(pos)
         self.hero.reparentTo(render)
-        self.cameraMind()
-        self.acceptEvents()
+        self.cameraBind()
+        self.accept_events()
 
     def cameraBind(self):
         base.disableMouse()
         base.camera.setH(180)
         base.camera.reparentTo(self.hero)
-        base.camera.setPor(0, 0, 1.5)
+        base.camera.setPos(0, 0, 1.5)
         self.cameraOn = True
 
     def cameraUp(self):
         pos = self.hero.getPos()
-        base.mouseInterfaceNode.setPos(-pos[0], -pos[1], -pos[3] - 3)
+        base.mouseInterfaceNode.setPos(-pos[0], -pos[1], -pos[2] - 3)
         base.camera.reparentTo(render)
         base.enableMouse()
         self.cameraOn = False
 
-    def cameraView(self):
-        if self.cameraOn():
+    def changeView(self):
+        if self.cameraOn:
             self.cameraUp()
         else:
             self.cameraBind()
 
     def tnLt(self):
         self.hero.setH((self.hero.getH() + 5) % 360)
-
     def tnRt(self):
         self.hero.setH((self.hero.getH() - 5) % 360)
     def look_at(self, angle):
         x_from = round(self.hero.getX())
         y_from = round(self.hero.getY())
         z_from = round(self.hero.getZ())
-        dx, dy = self.check_dir(angle)
+        dx, dy = check_dir(angle)
         x_to = x_from + dx
         y_to = y_from + dy
         return x_to, y_to, z_from
@@ -84,35 +106,32 @@ class Hero:
     def move_to(self, angle):
         if self.mode:
             self.just_move(angle)
-
-    def check_dir(self, angle):
-        if 0 <= angle <= 20:
-            return 0, -1
-        elif angle <= 65:
-            return 1, -1
-        elif angle <= 110:
-            return 1, 0
-        elif angle <= 155:
-            return 1, 1
-        elif angle <= 200:
-            return 0, 1
-        elif angle <= 245:
-            return -1, 1
-        elif angle <= 290:
-            return -1, 0
-        elif angle <= 335:
-            return -1, -1
         else:
-            return 0, -1
-
+            self.try_move(angle)
 
     def up(self):
         if self.mode:
             self.hero.setZ(self.hero.getZ()+1)
 
-    def down(self):
+    def dn(self):
         if self.mode and self.hero.getZ() > 1:
             self.hero.setZ(self.hero.getZ()-1)
+
+    def rt(self):
+        angle = (self.hero.getH() + 270) % 360
+        self.move_to(angle)
+
+    def lt(self):
+        angle = (self.hero.getH() + 90) % 360
+        self.move_to(angle)
+
+    def fw(self):
+        angle = (self.hero.getH() + 360) % 360
+        self.move_to(angle)
+
+    def bk(self):
+        angle = (self.hero.getH() + 180) % 360
+        self.move_to(angle)
 
     def build(self):
         angle = self.hero.getH() % 360
@@ -150,10 +169,23 @@ class Hero:
         base.accept(keyRt, self.rt)
         base.accept(keyRt + '-repeat', self.rt)
 
-        base.accept(keyUp, self.Up)
-        base.accept(keyUp + '-repeat', self.Up)
+        base.accept(keyUp, self.up)
+        base.accept(keyUp + '-repeat', self.up)
 
-        base.accept(keyDn, self.)
+        base.accept(keyDn, self.dn)
+        base.accept(keyDn + '-repeat', self.dn)
+
+        base.accept(keyBld, self.build)
+        base.accept(keyDst, self.destroy)
+
+        base.accept(keySwCam, self.changeView)
+        base.accept(keySwMode, self.changeMode)
+
+        base.accept(keySv, self.land.saveMap)
+        base.accept(keyLd, self.land.loadMap)
+
+
+
 
 
 
